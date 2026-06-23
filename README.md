@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# Fórmulas Negocio · Emperador Financiero
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Herramienta web con **42 calculadoras financieras** para emprendedores y dueños de negocio.
+Cada fórmula muestra qué es, su fórmula, un ejemplo real, los campos para tus números y una
+interpretación del resultado. Incluye un **Asesor IA** opcional que entiende tu situación y te
+lleva a la calculadora correcta.
 
-Currently, two official plugins are available:
+**Stack:** React + Vite + TypeScript · Tailwind CSS · Framer Motion · lucide-react.
+**Deploy:** Cloudflare Pages (las 42 calculadoras corren 100% en el navegador, sin backend).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Desarrollo
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # http://localhost:5173  (frontend; el chat IA necesita Functions, ver abajo)
+npm run build    # build de producción (tsc + vite)
+npm run lint     # oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Asesor IA (opcional y seguro)
+
+El chat usa una **Cloudflare Pages Function** (`functions/api/chat.ts`) que llama a **Google
+Gemini** desde el servidor. La API key vive como **variable secreta en Cloudflare**
+(`GEMINI_API_KEY`) y **nunca** se expone en el frontend.
+
+- Sin la key configurada, el chat muestra **"Asesor IA · Próximamente"** y el resto del sitio
+  funciona normal.
+- Pasos para activarlo (key gratis de Google AI Studio + cómo cargarla en Cloudflare) y cómo
+  probarlo localmente: ver **[DEPLOY.md](./DEPLOY.md)**.
+
+## Dónde tocar cada cosa
+
+| Qué | Dónde |
+|---|---|
+| Fórmulas y su lógica de cálculo | `src/data/calculadoras.ts` |
+| Íconos y categorías de las cards | `src/data/calcMeta.ts` |
+| Marca, colores por área, textos del hero | `src/config.ts` |
+| Paleta / estilos premium | `src/index.css` (bloque `@theme`) |
+| Logo | `public/logo-emperador.png` |
+| Backend del Asesor IA | `functions/api/chat.ts` |
