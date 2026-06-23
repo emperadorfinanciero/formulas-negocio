@@ -108,6 +108,18 @@ const json = (data: unknown, status = 200): Response =>
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   })
 
+// Reintenta una vez ante 429 / 5xx (errores transitorios del free tier).
+async function fetchWithRetry(url: string, init: RequestInit, retries = 1): Promise<Response> {
+  let res = await fetch(url, init)
+  let intentos = 0
+  while (!res.ok && (res.status === 429 || res.status >= 500) && intentos < retries) {
+    await new Promise((r) => setTimeout(r, 1200))
+    res = await fetch(url, init)
+    intentos++
+  }
+  return res
+}
+
 // GET → estado de configuración (sin exponer la key, solo un booleano).
 export const onRequestGet = async (context: PagesContext): Promise<Response> => {
   return json({ configured: Boolean(context.env.GEMINI_API_KEY) })
@@ -148,25 +160,51 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
   const model = env.GEMINI_MODEL || DEFAULT_MODEL
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
 
+  const payload = JSON.stringify({
+    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents: [{ role: 'user', parts: [{ text: message }] }],
+    generationConfig: { temperature: 0.4, maxOutputTokens: 512 },
+  })
+
   let geminiRes: Response
   try {
-    geminiRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: 'user', parts: [{ text: message }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 512 },
-      }),
-    })
+    geminiRes = await fetchWithRetry(
+      endpoint,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload },
+      1,
+    )
   } catch {
     return json({ error: 'No se pudo contactar al Asesor IA. Probá de nuevo en un momento.' }, 502)
   }
 
   if (!geminiRes.ok) {
-    // No exponemos detalle ni la API key, solo un mensaje claro y el código.
+    // El cuerpo de error de Gemini NO contiene la API key: es seguro relayarlo para diagnóstico.
+    let detalle = ''
+    try {
+      const errBody = (await geminiRes.json()) as { error?: { message?: string } }
+      detalle = (errBody.error?.message ?? '').slice(0, 240)
+    } catch {
+      /* sin cuerpo legible */
+    }
+
+    if (geminiRes.status === 429) {
+      return json(
+        {
+          error:
+            'El Asesor IA alcanzó el límite de uso del free tier de Gemini por ahora. Esperá un minuto y probá de nuevo.' +
+            (detalle ? ` (Gemini: ${detalle})` : ''),
+          retryable: true,
+        },
+        429,
+      )
+    }
+
     return json(
-      { error: `El Asesor IA no está disponible ahora mismo (${geminiRes.status}).` },
+      {
+        error:
+          `El Asesor IA no está disponible ahora mismo (${geminiRes.status}).` +
+          (detalle ? ` ${detalle}` : ''),
+      },
       502,
     )
   }
