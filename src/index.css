@@ -1,111 +1,283 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import 'tailwindcss';
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/* ============================================================
+   IDENTIDAD VISUAL — EMPERADOR FINANCIERO · FÓRMULAS NEGOCIO
+   Estética: premium · financiera · oscura · alto contraste
+   ============================================================ */
+@theme {
+  /* Acento dorado (marca) */
+  --color-gold: #eca819;
+  --color-gold-dark: #ce9123;
+  --color-gold-bright: #f2c64a;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Azules profundos / petróleo */
+  --color-abyss: #060d15; /* fondo más profundo */
+  --color-dark: #0a141f; /* fondo base */
+  --color-navy: #16223a; /* azul marino, paneles */
+  --color-petrol: #0f2d40; /* azul petróleo, cards */
+  --color-card: #0e2030; /* superficie de card */
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* Textos */
+  --color-warm: #f4efe3; /* blanco cálido — títulos y texto principal */
+  --color-muted: #9db0c4; /* gris azulado — texto secundario */
+
+  /* Estados funcionales */
+  --color-success: #25b187; /* verde — resultado positivo */
+  --color-warning: #f5b544; /* ámbar — alerta */
+  --color-danger: #ef5a5f; /* rojo — crítico / negativo */
+
+  /* Tipografía */
+  --font-display: 'Cormorant Garamond', serif; /* títulos / hero */
+  --font-body: 'Outfit', sans-serif; /* todo lo demás */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+/* ============================================================
+   BASE
+   ============================================================ */
+* {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-color: #060d15;
+  background-image:
+    radial-gradient(900px 500px at 50% -8%, rgba(236, 168, 25, 0.1), transparent 60%),
+    radial-gradient(700px 500px at 100% 0%, rgba(15, 45, 64, 0.6), transparent 55%),
+    linear-gradient(180deg, #08121c 0%, #060d15 100%);
+  background-attachment: fixed;
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  color: var(--color-warm);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: rgba(236, 168, 25, 0.28);
+  color: #fff;
+}
+
+/* Scrollbar premium */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #060d15;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c3550;
+  border-radius: 999px;
+  border: 2px solid #060d15;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4a6b;
+}
+
+/* ============================================================
+   TIPOGRAFÍA UTIL
+   ============================================================ */
+.text-warm {
+  color: var(--color-warm);
+}
+.text-muted {
+  color: var(--color-muted);
+}
+.text-gradient-gold {
+  background: linear-gradient(120deg, #f2c64a 0%, #eca819 50%, #ce9123 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.btn-primary {
+  position: relative;
+  background: linear-gradient(180deg, #f2c64a 0%, #eca819 100%);
+  color: #08121c;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border-radius: 12px;
+  padding: 14px 26px;
+  border: none;
+  cursor: pointer;
+  box-shadow:
+    0 10px 28px -12px rgba(236, 168, 25, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.25s ease,
+    filter 0.2s ease;
+}
+.btn-primary:hover {
+  filter: brightness(1.04);
+  box-shadow:
+    0 14px 36px -10px rgba(236, 168, 25, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-gold);
+  border: 1px solid rgba(236, 168, 25, 0.4);
+  border-radius: 12px;
+  padding: 13px 24px;
+  font-family: var(--font-body);
   font-weight: 500;
-  color: var(--text-h);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.18s;
+}
+.btn-secondary:hover {
+  background: rgba(236, 168, 25, 0.1);
+  border-color: rgba(236, 168, 25, 0.7);
+  transform: translateY(-1px);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/* ============================================================
+   SUPERFICIES / CARDS
+   ============================================================ */
+.card-premium {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+    var(--color-card);
+  border: 1px solid rgba(236, 168, 25, 0.12);
+  border-radius: 18px;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+.card-premium:hover {
+  border-color: rgba(236, 168, 25, 0.45);
+  box-shadow:
+    0 22px 50px -28px rgba(0, 0, 0, 0.85),
+    0 0 36px -14px rgba(236, 168, 25, 0.35);
+  transform: translateY(-4px);
+}
+
+.surface-panel {
+  background: rgba(14, 32, 48, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  backdrop-filter: blur(8px);
+}
+
+/* Borde superior dorado animado (decorativo) */
+.edge-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(236, 168, 25, 0.7), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.card-premium:hover .edge-gold::before,
+.edge-gold:hover::before {
+  opacity: 1;
+}
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+.input-field {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: var(--color-warm);
+  padding: 14px 16px;
+  font-family: var(--font-body);
+  font-size: 16px; /* evita zoom en iOS */
+  width: 100%;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.input-field:focus {
+  border-color: var(--color-gold);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(236, 168, 25, 0.16);
+  outline: none;
+}
+.input-field::placeholder {
+  color: rgba(157, 176, 196, 0.45);
+}
+
+/* ============================================================
+   CAJA DE FÓRMULA
+   ============================================================ */
+.formula-box {
+  font-family: ui-monospace, 'SFMono-Regular', 'Courier New', monospace;
+  background: rgba(236, 168, 25, 0.07);
+  border: 1px solid rgba(236, 168, 25, 0.18);
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 12px 12px 0;
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  color: rgba(244, 239, 227, 0.9);
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+/* ============================================================
+   RESALTADO DESDE EL CHAT IA
+   ============================================================ */
+.calc-highlighted {
+  border-color: var(--color-gold) !important;
+  box-shadow:
+    0 0 0 1px rgba(236, 168, 25, 0.5),
+    0 0 40px -6px rgba(236, 168, 25, 0.45) !important;
+  animation: pulse-gold 1.4s ease-in-out 2;
+}
+@keyframes pulse-gold {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(236, 168, 25, 0.5),
+      0 0 40px -6px rgba(236, 168, 25, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(236, 168, 25, 0.8),
+      0 0 55px -2px rgba(236, 168, 25, 0.6);
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Grano sutil para profundidad (no distrae) */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
