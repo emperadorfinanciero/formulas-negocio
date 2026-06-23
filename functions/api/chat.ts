@@ -100,7 +100,7 @@ interface PagesContext {
   env: Env
 }
 
-const DEFAULT_MODEL = 'gemini-2.0-flash'
+const DEFAULT_MODEL = 'gemini-2.5-flash'
 
 const json = (data: unknown, status = 200): Response =>
   new Response(JSON.stringify(data), {
@@ -163,7 +163,12 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
   const payload = JSON.stringify({
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [{ role: 'user', parts: [{ text: message }] }],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 512 },
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: 512,
+      // Desactiva el "thinking" de 2.5-flash: más rápido y más barato para enrutar.
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   })
 
   let geminiRes: Response
