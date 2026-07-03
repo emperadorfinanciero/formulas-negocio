@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, ArrowDown } from 'lucide-react'
 import { HERO } from '../config'
@@ -35,7 +36,7 @@ export default function Hero() {
         </h1>
 
         {/* Subtítulo */}
-        <p className="mx-auto mt-5 font-display text-2xl text-gold sm:text-3xl">
+        <p className="mx-auto mt-5 text-xl font-medium text-warm/70 sm:text-2xl">
           {HERO.subtitulo}
         </p>
 
@@ -65,16 +66,19 @@ export default function Hero() {
         </div>
 
         {/* Métricas de confianza */}
-        <div className="mt-12 flex items-center justify-center gap-8 sm:gap-12">
+        <div className="mt-12 flex items-center justify-center gap-5 sm:gap-9">
           {[
-            { n: '42', l: 'fórmulas' },
+            { n: '47', l: 'calculadoras' },
             { n: '4', l: 'áreas del negocio' },
-            { n: '<60s', l: 'por cálculo' },
-          ].map((s) => (
-            <div key={s.l} className="text-center">
-              <div className="font-display text-3xl font-bold text-warm sm:text-4xl">{s.n}</div>
-              <div className="mt-0.5 text-xs uppercase tracking-wider text-muted">{s.l}</div>
-            </div>
+            { n: '0', l: 'datos guardados' },
+          ].map((s, i) => (
+            <Fragment key={s.l}>
+              {i > 0 && <div className="h-10 w-px shrink-0 bg-white/10" aria-hidden />}
+              <div className="text-center">
+                <div className="font-display text-3xl font-bold text-warm sm:text-4xl">{s.n}</div>
+                <div className="mt-0.5 text-xs uppercase tracking-wider text-muted">{s.l}</div>
+              </div>
+            </Fragment>
           ))}
         </div>
       </motion.div>

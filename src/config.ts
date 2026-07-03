@@ -11,7 +11,7 @@ export const BRAND = {
 }
 
 export const HERO = {
-  badge: '42 fórmulas financieras · Herramienta profesional',
+  badge: '47 calculadoras financieras · Herramienta profesional',
   titulo: 'Las fórmulas que necesitás para tomar mejores decisiones.',
   subtitulo: 'Sin vueltas. Con tus números reales.',
   descripcion:
@@ -30,16 +30,16 @@ export const NAV_LINKS = [
 // Pasos de "Cómo funciona"
 export const PASOS = [
   {
-    titulo: 'Elegí tu fórmula',
-    texto: 'Navegá las 42 calculadoras por categoría o pedile al Asesor IA que te lleve a la indicada.',
+    titulo: 'Encontrá la fórmula exacta',
+    texto: 'Buscá por nombre, navegá por área o preguntale al Asesor IA — en segundos te lleva a la calculadora correcta para tu pregunta.',
   },
   {
-    titulo: 'Ingresá tus números',
-    texto: 'Campos claros, con ayuda en cada variable. Cálculo instantáneo, sin planillas ni vueltas.',
+    titulo: 'Ingresá tus números reales',
+    texto: 'Campos claros con ejemplos reales. Calculás en segundos, sin planillas, sin cuentas complicadas y sin registro.',
   },
   {
-    titulo: 'Entendé el resultado',
-    texto: 'No solo el número: una interpretación en lenguaje simple y la próxima acción sugerida.',
+    titulo: 'Tomá mejores decisiones',
+    texto: 'No solo el número: entendés qué significa para tu negocio, si estás bien o mal parado, y cuál es el próximo paso concreto.',
   },
 ]
 

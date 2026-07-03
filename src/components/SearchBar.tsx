@@ -24,7 +24,8 @@ export default function SearchBar({ value, onChange, resultCount }: Props) {
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Buscar fórmula… Ej: margen, descuento, sueldo, punto de equilibrio"
-            className="input-field py-3 pl-9 pr-10 text-sm"
+            className="input-field py-3 pr-10 text-sm"
+            style={{ paddingLeft: '2.25rem' }}
             aria-label="Buscar calculadora"
           />
           {value && (

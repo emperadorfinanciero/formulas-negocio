@@ -90,29 +90,20 @@ export default function BlockSection({ id, nombre, descripcion, calculadoras, on
         </motion.div>
 
         {/* Grilla de calculadoras */}
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-60px' }}
-          variants={{
-            hidden: {},
-            show: { transition: { staggerChildren: 0.05 } },
-          }}
-          className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {calcsMostradas.map((calc) => (
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {calcsMostradas.map((calc, i) => (
             <motion.div
               key={calc.id}
-              variants={{
-                hidden: { opacity: 0, y: 18 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-              }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-20px' }}
+              transition={{ duration: 0.35, delay: Math.min(i * 0.04, 0.24) }}
               className="h-full"
             >
               <CalculatorCard calc={calc} onSelect={onSelect} />
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
         {filtroCategoria && calcsMostradas.length === 0 && (
           <p className="mt-8 text-center text-sm text-muted">

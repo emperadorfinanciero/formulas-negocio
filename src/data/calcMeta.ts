@@ -34,6 +34,11 @@ import {
   Briefcase,
   Clock,
   Activity,
+  BarChart2,
+  Package,
+  TrendingDown,
+  BarChart3,
+  UserMinus,
 } from 'lucide-react'
 
 export interface CalcMeta {
@@ -59,6 +64,10 @@ export const CALC_META: Record<string, CalcMeta> = {
   F14: { Icon: FileText, categoria: 'Rentabilidad' },
   F15: { Icon: UserPlus, categoria: 'Equipo' },
   F16: { Icon: RefreshCw, categoria: 'Costos' },
+  F17: { Icon: BarChart2, categoria: 'Caja' },
+  F18: { Icon: Package, categoria: 'Caja' },
+  F19: { Icon: TrendingDown, categoria: 'Costos' },
+  F20: { Icon: BarChart3, categoria: 'Rentabilidad' },
 
   // ---- Ventas ----
   V1: { Icon: Receipt, categoria: 'Ventas' },
@@ -71,6 +80,7 @@ export const CALC_META: Record<string, CalcMeta> = {
   V8: { Icon: Tags, categoria: 'Pricing' },
   V9: { Icon: TrendingUp, categoria: 'Ventas' },
   V10: { Icon: Target, categoria: 'Ventas' },
+  V11: { Icon: UserMinus, categoria: 'Retención' },
 
   // ---- Marketing ----
   M1: { Icon: Megaphone, categoria: 'Adquisición' },

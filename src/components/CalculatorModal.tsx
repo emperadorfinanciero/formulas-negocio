@@ -13,11 +13,11 @@ import ResultBox from './ResultBox'
 function hintFor(tipo: InputTipo): string {
   switch (tipo) {
     case 'moneda':
-      return 'Monto en pesos. Ej: 1.500.000'
+      return 'Ej: 150.000 o 1.500.000'
     case 'porcentaje':
-      return 'Número sin el símbolo %. Ej: 55 para 55%'
+      return 'Solo el número. Ej: 35 para 35%'
     case 'decimal':
-      return 'Número con decimales. Ej: 1,35'
+      return 'Con decimales. Ej: 1,35'
     default:
       return 'Cantidad entera. Ej: 26'
   }
@@ -228,18 +228,34 @@ export default function CalculatorModal({
                           <span className="ml-1.5 text-[10px] text-muted/60">(opcional)</span>
                         )}
                       </label>
-                      <input
-                        id={`input-${calc.id}-${field.id}`}
-                        className="input-field"
-                        inputMode={
-                          field.tipo === 'numero' || field.tipo === 'moneda' ? 'numeric' : 'decimal'
-                        }
-                        placeholder={field.placeholder}
-                        value={values[field.id] ?? ''}
-                        onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        onBlur={() => field.tipo === 'moneda' && handleMonedaBlur(field.id)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCalcular()}
-                      />
+                      <div className="relative">
+                        {field.tipo === 'moneda' && (
+                          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-sm text-muted/50">
+                            $
+                          </span>
+                        )}
+                        <input
+                          id={`input-${calc.id}-${field.id}`}
+                          className="input-field"
+                          style={{
+                            paddingLeft: field.tipo === 'moneda' ? '1.75rem' : undefined,
+                            paddingRight: field.tipo === 'porcentaje' ? '1.75rem' : undefined,
+                          }}
+                          inputMode={
+                            field.tipo === 'numero' || field.tipo === 'moneda' ? 'numeric' : 'decimal'
+                          }
+                          placeholder={field.placeholder}
+                          value={values[field.id] ?? ''}
+                          onChange={(e) => handleInputChange(field.id, e.target.value)}
+                          onBlur={() => field.tipo === 'moneda' && handleMonedaBlur(field.id)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleCalcular()}
+                        />
+                        {field.tipo === 'porcentaje' && (
+                          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 select-none text-sm text-muted/50">
+                            %
+                          </span>
+                        )}
+                      </div>
                       <p className="mt-1 text-xs text-muted/60">{hintFor(field.tipo)}</p>
                     </div>
                   ))}

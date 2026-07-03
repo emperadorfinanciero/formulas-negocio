@@ -20,6 +20,10 @@ export const CALC_RELACIONADAS: Record<string, string[]> = {
   F14: ['F2', 'F6'],   // P&L → Margen Neto, PE
   F15: ['F6', 'E1'],   // PE Contratación → PE, Costo Real Persona
   F16: ['F1', 'F3'],   // Costo Reposición → Margen Bruto, Precio Mínimo
+  F17: ['F18', 'F6'],  // Proyección Caja → Capital de Trabajo, PE
+  F18: ['F17', 'F6'],  // Capital de Trabajo → Proyección Caja, PE
+  F19: ['F3', 'F16'],  // Precio Inflación → Precio Mínimo, Costo Reposición
+  F20: ['F1', 'F2'],   // Multi-Producto → Margen Bruto, Margen Neto
   // Ventas
   V1:  ['V6', 'V4'],   // Ticket Promedio → Impacto Ticket, LTV
   V2:  ['V5', 'F8'],   // Tasa Cierre → Proyección Ventas, Proyección Inversa
@@ -31,6 +35,7 @@ export const CALC_RELACIONADAS: Record<string, string[]> = {
   V8:  ['F1', 'F3'],   // Eficiencia Descuento → Margen Bruto, Precio Mínimo
   V9:  ['V1', 'V6'],   // Upsell → Ticket Promedio, Impacto Ticket
   V10: ['F7', 'F6'],   // Meta Diaria → Punto Óptimo, PE
+  V11: ['V4', 'M1'],   // Churn → LTV, CAC
   // Marketing
   M1:  ['M2', 'V4'],   // CAC → CAC Permitido, LTV
   M2:  ['M1', 'V4'],   // CAC Permitido → CAC, LTV

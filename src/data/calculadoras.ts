@@ -661,10 +661,179 @@ const FINANZAS: Calculadora[] = [
       return { semaforo, mensaje }
     },
   },
+  {
+    id: 'F17',
+    nombre: 'Proyección de Caja a 90 días',
+    bloque: 'Finanzas',
+    que_es: 'Cuánta plata vas a tener disponible en los próximos 3 meses. La herramienta clave para no quedarte sin caja aunque el negocio sea rentable.',
+    formula: 'Saldo Mes N = Saldo Mes N−1 + Cobros del mes − Pagos del mes',
+    ejemplo: {
+      contexto: 'Negocio con caja ajustada',
+      datos: 'Caja hoy: $500.000 · Mes 1: cobra $2.000.000, paga $1.800.000 · Mes 2: cobra $2.200.000, paga $1.900.000 · Mes 3: cobra $1.500.000, paga $2.100.000',
+      resultado: 'Mes 1: $700.000 · Mes 2: $1.000.000 · Mes 3: $400.000 — el Mes 3 se comprime. Hay que prepararse con anticipación.',
+    },
+    inputs: [
+      { id: 'saldo_inicial', label: 'Caja disponible hoy', placeholder: '500000', tipo: 'moneda' },
+      { id: 'cobros_1', label: 'Cobros esperados — Mes 1', placeholder: '2000000', tipo: 'moneda' },
+      { id: 'pagos_1', label: 'Pagos comprometidos — Mes 1', placeholder: '1800000', tipo: 'moneda' },
+      { id: 'cobros_2', label: 'Cobros esperados — Mes 2', placeholder: '2200000', tipo: 'moneda' },
+      { id: 'pagos_2', label: 'Pagos comprometidos — Mes 2', placeholder: '1900000', tipo: 'moneda' },
+      { id: 'cobros_3', label: 'Cobros esperados — Mes 3', placeholder: '1500000', tipo: 'moneda' },
+      { id: 'pagos_3', label: 'Pagos comprometidos — Mes 3', placeholder: '2100000', tipo: 'moneda' },
+    ],
+    calcular: (inputs) => {
+      const saldo_1 = inputs.saldo_inicial + inputs.cobros_1 - inputs.pagos_1
+      const saldo_2 = saldo_1 + inputs.cobros_2 - inputs.pagos_2
+      const saldo_3 = saldo_2 + inputs.cobros_3 - inputs.pagos_3
+      const mes_critico = saldo_1 < 0 ? 1 : saldo_2 < 0 ? 2 : saldo_3 < 0 ? 3 : 0
+      return { saldo_1, saldo_2, saldo_3, mes_critico }
+    },
+    interpretar: (resultado, inputs) => {
+      const { saldo_1, saldo_2, saldo_3, mes_critico } = resultado
+      const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
+      const min_saldo = Math.min(saldo_1, saldo_2, saldo_3)
+      const semaforo: Semaforo = mes_critico > 0 ? 'negativo' : min_saldo < inputs.saldo_inicial * 0.5 ? 'neutral' : 'positivo'
+      let mensaje = `Proyección: Mes 1 ${fmt(saldo_1)} · Mes 2 ${fmt(saldo_2)} · Mes 3 ${fmt(saldo_3)}. `
+      if (mes_critico > 0) {
+        mensaje += `La caja entra en negativo en el Mes ${mes_critico}. Necesitás cubrir esa brecha antes de que llegue: adelantar cobros, negociar plazos de pago o conseguir financiamiento.`
+      } else if (saldo_3 > saldo_1 && saldo_2 > saldo_1) {
+        mensaje += `La caja crece de forma consistente. Flujo positivo — aprovechá el excedente para invertir o formar reservas.`
+      } else if (min_saldo < inputs.saldo_inicial * 0.5) {
+        mensaje += `La caja es positiva pero hay un mes comprimido (${fmt(min_saldo)}). Preparate con anticipación para ese período y evitá compromisos financieros adicionales ese mes.`
+      } else {
+        mensaje += `La caja se mantiene sólida en los 3 meses. Flujo equilibrado y con margen.`
+      }
+      return { semaforo, mensaje }
+    },
+  },
+  {
+    id: 'F18',
+    nombre: 'Capital de Trabajo Necesario',
+    bloque: 'Finanzas',
+    que_es: 'Cuánto dinero necesita el negocio para operar entre que comprás o producís y que cobrás. Sin este colchón, el negocio se ahoga aunque venda bien.',
+    formula: 'Capital de Trabajo = (Costos variables + Gastos fijos) × Días del ciclo / 30',
+    ejemplo: {
+      contexto: 'Comercio que demora 45 días entre compra y cobro',
+      datos: 'Costos variables: $1.500.000 · Gastos fijos: $500.000 · Ciclo operativo: 45 días',
+      resultado: 'Capital de trabajo necesario: $3.000.000 — ese dinero tiene que estar siempre disponible.',
+    },
+    inputs: [
+      { id: 'costos_variables_mes', label: 'Costos variables del mes', placeholder: '1500000', tipo: 'moneda' },
+      { id: 'gastos_fijos_mes', label: 'Gastos fijos del mes', placeholder: '500000', tipo: 'moneda' },
+      { id: 'dias_ciclo', label: 'Días entre que pagás y cobrás', placeholder: '45', tipo: 'numero' },
+    ],
+    calcular: (inputs) => {
+      const egresos_diarios = (inputs.costos_variables_mes + inputs.gastos_fijos_mes) / 30
+      const capital_trabajo = egresos_diarios * inputs.dias_ciclo
+      return { capital_trabajo, egresos_diarios }
+    },
+    interpretar: (resultado, inputs) => {
+      const { capital_trabajo, egresos_diarios } = resultado
+      const ciclo = inputs.dias_ciclo
+      const semaforo: Semaforo = ciclo <= 15 ? 'positivo' : ciclo <= 45 ? 'neutral' : 'negativo'
+      let mensaje = `Necesitás $${Math.round(capital_trabajo).toLocaleString('es-AR')} de capital de trabajo para operar sin interrupciones con un ciclo de ${ciclo} días. `
+      if (ciclo <= 15) {
+        mensaje += `Ciclo corto — el capital necesario es manejable y el negocio tiene buena fluidez. Mantené esa agilidad de cobro.`
+      } else if (ciclo <= 45) {
+        mensaje += `Ciclo moderado. Asegurate de tener ese capital disponible o una línea de crédito que lo cubra. Reducir el ciclo 10 días libera $${Math.round(egresos_diarios * 10).toLocaleString('es-AR')} de capital.`
+      } else {
+        mensaje += `Ciclo largo — inmovilizás una cantidad significativa de capital. Prioridad: acortar plazos de cobro, cobrar anticipos o usar financiamiento de proveedores.`
+      }
+      return { semaforo, mensaje }
+    },
+  },
+  {
+    id: 'F19',
+    nombre: 'Precio con Ajuste por Inflación',
+    bloque: 'Finanzas',
+    que_es: 'Cuánto deberías cobrar hoy para mantener el mismo margen real. En contextos de inflación, no actualizar el precio es descapitalizarse en silencio.',
+    formula: 'Precio ajustado = Precio actual × (1 + inflación mensual / 100) ^ meses',
+    ejemplo: {
+      contexto: 'Servicio con inflación del 3% mensual',
+      datos: 'Precio actual: $50.000 · Inflación: 3% mensual · Período: 6 meses',
+      resultado: 'Precio ajustado: $59.940 — sin actualizar, tu precio perdió el 16% de su valor real.',
+    },
+    inputs: [
+      { id: 'precio_actual', label: 'Precio o costo actual', placeholder: '50000', tipo: 'moneda' },
+      { id: 'inflacion_mensual', label: 'Inflación mensual estimada', placeholder: '3', tipo: 'porcentaje' },
+      { id: 'meses', label: 'Meses a proyectar', placeholder: '6', tipo: 'numero' },
+    ],
+    calcular: (inputs) => {
+      const precio_ajustado = inputs.precio_actual * Math.pow(1 + inputs.inflacion_mensual / 100, inputs.meses)
+      const diferencia = precio_ajustado - inputs.precio_actual
+      const perdida_pct = (diferencia / inputs.precio_actual) * 100
+      return { precio_ajustado, diferencia, perdida_pct }
+    },
+    interpretar: (resultado, inputs) => {
+      const { precio_ajustado, perdida_pct } = resultado
+      const meses = inputs.meses
+      const semaforo: Semaforo = perdida_pct < 10 ? 'positivo' : perdida_pct < 25 ? 'neutral' : 'negativo'
+      let mensaje = `Con ${inputs.inflacion_mensual}% mensual, en ${meses} mes${meses !== 1 ? 'es' : ''} el precio debería ser $${Math.round(precio_ajustado).toLocaleString('es-AR')} para mantener el mismo valor real. `
+      if (perdida_pct < 10) {
+        mensaje += `El ajuste necesario es menor al 10% — una suba moderada que el mercado suele absorber sin resistencia.`
+      } else if (perdida_pct < 25) {
+        mensaje += `Sin actualizar el precio en este período, tu margen real cae un ${perdida_pct.toFixed(1)}%. Planificá la suba por etapas para no perder poder adquisitivo.`
+      } else {
+        mensaje += `Impacto alto: sin actualización, perdés el ${perdida_pct.toFixed(1)}% del valor real de tu precio. Necesitás actualizar de forma regular — esperar acumula un ajuste difícil de comunicar al cliente.`
+      }
+      return { semaforo, mensaje }
+    },
+  },
+  {
+    id: 'F20',
+    nombre: 'Rentabilidad por Producto',
+    bloque: 'Finanzas',
+    que_es: 'Cuál es el margen ponderado real de tu negocio cuando vendés varios productos. Identificá cuáles te convienen más y cómo mejorar el mix para maximizar la rentabilidad.',
+    formula: 'Margen ponderado = Σ (Margen_i × Ventas_i) / Ventas totales',
+    ejemplo: {
+      contexto: 'Negocio con 3 productos',
+      datos: 'Prod. A: margen 60%, ventas $500K · Prod. B: margen 30%, ventas $800K · Prod. C: margen 15%, ventas $200K',
+      resultado: 'Margen ponderado: 37,2% — el Producto B baja el promedio; aumentar el mix de A mejoraría la rentabilidad.',
+    },
+    inputs: [
+      { id: 'margen_1', label: 'Margen bruto — Producto 1', placeholder: '60', tipo: 'porcentaje' },
+      { id: 'ventas_1', label: 'Ventas mensuales — Producto 1', placeholder: '500000', tipo: 'moneda' },
+      { id: 'margen_2', label: 'Margen bruto — Producto 2', placeholder: '30', tipo: 'porcentaje' },
+      { id: 'ventas_2', label: 'Ventas mensuales — Producto 2', placeholder: '800000', tipo: 'moneda' },
+      { id: 'margen_3', label: 'Margen bruto — Producto 3 (opcional)', placeholder: '15', tipo: 'porcentaje', requerido: false },
+      { id: 'ventas_3', label: 'Ventas mensuales — Producto 3 (opcional)', placeholder: '200000', tipo: 'moneda', requerido: false },
+      { id: 'margen_4', label: 'Margen bruto — Producto 4 (opcional)', placeholder: '45', tipo: 'porcentaje', requerido: false },
+      { id: 'ventas_4', label: 'Ventas mensuales — Producto 4 (opcional)', placeholder: '300000', tipo: 'moneda', requerido: false },
+    ],
+    calcular: (inputs) => {
+      const productos = [
+        { margen: inputs.margen_1, ventas: inputs.ventas_1 },
+        { margen: inputs.margen_2, ventas: inputs.ventas_2 },
+        { margen: inputs.margen_3, ventas: inputs.ventas_3 },
+        { margen: inputs.margen_4, ventas: inputs.ventas_4 },
+      ].filter((p) => p.ventas > 0)
+      const ventas_total = productos.reduce((acc, p) => acc + p.ventas, 0)
+      const margen_ponderado = productos.reduce((acc, p) => acc + (p.margen * p.ventas) / ventas_total, 0)
+      const utilidad_total = productos.reduce((acc, p) => acc + p.ventas * (p.margen / 100), 0)
+      const mejor_margen = Math.max(...productos.map((p) => p.margen))
+      return { margen_ponderado, ventas_total, utilidad_total, mejor_margen }
+    },
+    interpretar: (resultado) => {
+      const { margen_ponderado, ventas_total, utilidad_total, mejor_margen } = resultado
+      const semaforo: Semaforo = margen_ponderado >= 40 ? 'positivo' : margen_ponderado >= 20 ? 'neutral' : 'negativo'
+      const diferencia = mejor_margen - margen_ponderado
+      let mensaje = `Margen ponderado: ${margen_ponderado.toFixed(1)}% sobre $${Math.round(ventas_total).toLocaleString('es-AR')} en ventas. Utilidad bruta estimada: $${Math.round(utilidad_total).toLocaleString('es-AR')}. `
+      if (diferencia > 15) {
+        mensaje += `Hay ${diferencia.toFixed(1)} puntos de diferencia entre tu mejor y peor producto. Mover el mix hacia los productos de mayor margen — sin bajar ventas totales — puede impactar fuertemente la rentabilidad.`
+      } else if (margen_ponderado >= 40) {
+        mensaje += `Margen ponderado sólido. El mix actual es saludable.`
+      } else if (margen_ponderado >= 20) {
+        mensaje += `Margen moderado. Revisá si podés mejorar los márgenes de los productos más pesados en ventas o aumentar el mix de los más rentables.`
+      } else {
+        mensaje += `Margen bajo. Con menos del 20% en promedio, cualquier aumento de costos o descuento impacta de forma crítica. Priorizá subir márgenes antes de volumen.`
+      }
+      return { semaforo, mensaje }
+    },
+  },
 ]
 
 // ============================================================
-// BLOQUE VENTAS (V1–V10) — funcional
+// BLOQUE VENTAS (V1–V11) — funcional
 // Datos exactos de Formulas_Emprendedor_mktventas.md
 // ============================================================
 const VENTAS: Calculadora[] = [
@@ -1008,6 +1177,44 @@ const VENTAS: Calculadora[] = [
       if (meta_turno)
         mensaje += `Eso es $${meta_turno.toLocaleString('es-AR', { maximumFractionDigits: 0 })} por turno. `
       mensaje += `Ese es el número que el encargado comunica cada mañana: convierte la estrategia en operación diaria concreta.`
+      return { semaforo, mensaje }
+    },
+  },
+  {
+    id: 'V11',
+    nombre: 'Costo Mensual del Churn',
+    bloque: 'Ventas',
+    que_es: 'Cuánto pierde el negocio cada mes por los clientes que se van. Retener es casi siempre más barato que adquirir — este número te ayuda a justificar la inversión en fidelización.',
+    formula: 'Ingreso perdido mensual = Clientes activos × (Churn% / 100) × Ticket mensual',
+    ejemplo: {
+      contexto: 'Servicio de membresía',
+      datos: 'Clientes activos: 200 · Churn: 5% mensual · Ticket mensual: $8.000',
+      resultado: 'Perdés 10 clientes y $80.000 por mes. En un año: $960.000 si no mejorás la retención.',
+    },
+    inputs: [
+      { id: 'clientes_activos', label: 'Clientes activos hoy', placeholder: '200', tipo: 'numero' },
+      { id: 'ticket_mensual', label: 'Facturación mensual por cliente', placeholder: '8000', tipo: 'moneda' },
+      { id: 'churn_pct', label: 'Churn mensual (% que se van)', placeholder: '5', tipo: 'porcentaje' },
+    ],
+    calcular: (inputs) => {
+      const clientes_perdidos = inputs.clientes_activos * (inputs.churn_pct / 100)
+      const ingreso_perdido_mes = clientes_perdidos * inputs.ticket_mensual
+      const ingreso_perdido_anual = ingreso_perdido_mes * 12
+      return { clientes_perdidos, ingreso_perdido_mes, ingreso_perdido_anual }
+    },
+    interpretar: (resultado, inputs) => {
+      const { clientes_perdidos, ingreso_perdido_mes, ingreso_perdido_anual } = resultado
+      const churn = inputs.churn_pct
+      const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
+      const semaforo: Semaforo = churn <= 2 ? 'positivo' : churn <= 5 ? 'neutral' : 'negativo'
+      let mensaje = `Con un churn del ${churn}%, perdés ${Math.round(clientes_perdidos)} clientes y ${fmt(ingreso_perdido_mes)} por mes. Proyectado a 12 meses: ${fmt(ingreso_perdido_anual)} si no cambia nada. `
+      if (churn <= 2) {
+        mensaje += `Churn bajo — estás reteniendo bien. Seguí midiendo y actuando ante las primeras señales de abandono.`
+      } else if (churn <= 5) {
+        mensaje += `Churn moderado. Reducirlo al 2% cambiaría radicalmente la proyección anual. Investigá por qué se van y trabajá en un proceso de retención activa.`
+      } else {
+        mensaje += `Churn alto. Con más del 5% mensual, la base se erosiona rápido. Es urgente entender el motivo de abandono y crear un plan de retención — es la inversión con mejor retorno que podés hacer ahora.`
+      }
       return { semaforo, mensaje }
     },
   },
