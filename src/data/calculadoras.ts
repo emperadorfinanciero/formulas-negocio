@@ -146,7 +146,9 @@ const FINANZAS: Calculadora[] = [
       { id: 'precio_actual', label: 'Tu precio actual (opcional)', placeholder: '3500', tipo: 'moneda', requerido: false },
     ],
     calcular: (inputs) => {
-      const precio_minimo = inputs.costo_directo / (1 - inputs.margen_objetivo / 100)
+      const divisor = 1 - inputs.margen_objetivo / 100
+      if (divisor <= 0) return { precio_minimo: null, margen_actual: null, diferencia: null }
+      const precio_minimo = inputs.costo_directo / divisor
       const margen_actual = inputs.precio_actual
         ? ((inputs.precio_actual - inputs.costo_directo) / inputs.precio_actual) * 100
         : null
@@ -155,6 +157,9 @@ const FINANZAS: Calculadora[] = [
     },
     interpretar: (resultado, inputs) => {
       const { precio_minimo, diferencia } = resultado
+      if (precio_minimo === null) {
+        return { semaforo: 'negativo', mensaje: 'El margen objetivo no puede ser 100% o más — resultaría en un precio infinito. Ingresá un margen entre 1% y 99%.' }
+      }
       let semaforo: Semaforo = 'neutral'
       let mensaje = `Tu precio mínimo de venta es $${precio_minimo.toFixed(0)}. `
       if (inputs.precio_actual) {
@@ -601,12 +606,17 @@ const FINANZAS: Calculadora[] = [
     ],
     calcular: (inputs) => {
       const costo_real = inputs.sueldo * inputs.factor_cargas
-      const incremento_necesario = costo_real / (1 - inputs.mn_objetivo / 100)
+      const divisor = 1 - inputs.mn_objetivo / 100
+      if (divisor <= 0) return { costo_real, incremento_necesario: null, ventas_nueva_meta: null }
+      const incremento_necesario = costo_real / divisor
       const ventas_nueva_meta = inputs.ventas_actuales ? inputs.ventas_actuales + incremento_necesario : null
       return { costo_real, incremento_necesario, ventas_nueva_meta }
     },
     interpretar: (resultado, inputs) => {
       const { costo_real, incremento_necesario, ventas_nueva_meta } = resultado
+      if (incremento_necesario === null) {
+        return { semaforo: 'negativo', mensaje: `El costo real de esa persona es $${costo_real.toLocaleString('es-AR', { maximumFractionDigits: 0 })}/mes. El margen neto objetivo no puede ser 100% — ingresá un valor entre 1% y 99%.` }
+      }
       const semaforo: Semaforo = 'neutral'
       let mensaje = `El costo real de esa persona es $${costo_real.toLocaleString('es-AR', { maximumFractionDigits: 0 })}/mes (incluyendo cargas). `
       mensaje += `Para mantener tu margen neto objetivo, necesitás crecer $${incremento_necesario.toLocaleString('es-AR', { maximumFractionDigits: 0 })} en facturación mensual. `

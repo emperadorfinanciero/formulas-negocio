@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CheckCircle2, ArrowRight, AlertTriangle } from 'lucide-react'
+import { CheckCircle2, TrendingUp, AlertTriangle } from 'lucide-react'
 import type { Interpretacion, Semaforo } from '../data/calculadoras'
 
 const SEMAFORO_STYLES: Record<
@@ -15,10 +15,10 @@ const SEMAFORO_STYLES: Record<
   },
   neutral: {
     color: '#ECA819',
-    label: 'Zona de atención',
+    label: 'Podés mejorar',
     bg: 'rgba(236, 168, 25, 0.10)',
     ring: 'rgba(236, 168, 25, 0.45)',
-    Icon: ArrowRight,
+    Icon: TrendingUp,
   },
   negativo: {
     color: '#EF5A5F',

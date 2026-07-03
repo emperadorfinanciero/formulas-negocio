@@ -1,23 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronDown, Calculator, Info, Lightbulb } from 'lucide-react'
+import { X, ChevronDown, Calculator, Lightbulb, Copy, Check, ArrowRight } from 'lucide-react'
 import type { Calculadora, Interpretacion, InputTipo } from '../data/calculadoras'
 import { CALC_META, DEFAULT_ICON } from '../data/calcMeta'
 import { BLOQUE_COLOR } from '../config'
-import { parseInput } from '../lib/formatters'
+import { parseInput, formatNumber } from '../lib/formatters'
 import { validateInputs } from '../lib/validators'
+import { CALC_RELACIONADAS } from '../data/calcRelacionadas'
+import { CALCULADORAS } from '../data/calculadoras'
 import ResultBox from './ResultBox'
 
 function hintFor(tipo: InputTipo): string {
   switch (tipo) {
     case 'moneda':
-      return 'Monto en pesos. Ej: 3.500.000'
+      return 'Monto en pesos. Ej: 1.500.000'
     case 'porcentaje':
-      return 'Porcentaje como número. Ej: 55 para 55%'
+      return 'Número sin el símbolo %. Ej: 55 para 55%'
     case 'decimal':
       return 'Número con decimales. Ej: 1,35'
     default:
-      return 'Cantidad (número entero). Ej: 26'
+      return 'Cantidad entera. Ej: 26'
   }
 }
 
@@ -32,11 +34,20 @@ export default function CalculatorModal({
   const [interpretacion, setInterpretacion] = useState<Interpretacion | null>(null)
   const [errors, setErrors] = useState<string[]>([])
   const [formulaAbierta, setFormulaAbierta] = useState(false)
+  const [stale, setStale] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const resultRef = useRef<HTMLDivElement>(null)
 
   const meta = CALC_META[calc.id]
   const Icon = meta?.Icon ?? DEFAULT_ICON
   const categoria = meta?.categoria ?? calc.bloque
   const tagColor = BLOQUE_COLOR[calc.bloque] ?? '#ECA819'
+
+  // Calculadoras relacionadas
+  const relacionadasIds = CALC_RELACIONADAS[calc.id] ?? []
+  const relacionadas = relacionadasIds
+    .map((id) => CALCULADORAS.find((c) => c.id === id))
+    .filter(Boolean) as Calculadora[]
 
   // Cerrar con Escape + bloquear scroll del body
   useEffect(() => {
@@ -48,6 +59,15 @@ export default function CalculatorModal({
       document.body.style.overflow = ''
     }
   }, [onClose])
+
+  // Scroll automático al resultado
+  useEffect(() => {
+    if (interpretacion && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 100)
+    }
+  }, [interpretacion])
 
   function handleCalcular() {
     if (!calc.inputs || !calc.calcular || !calc.interpretar) return
@@ -62,8 +82,39 @@ export default function CalculatorModal({
       return
     }
     setErrors([])
+    setStale(false)
     const resultado = calc.calcular(parsed)
     setInterpretacion(calc.interpretar(resultado, parsed))
+  }
+
+  function handleInputChange(id: string, value: string) {
+    setValues((prev) => ({ ...prev, [id]: value }))
+    if (interpretacion) setStale(true)
+  }
+
+  function handleMonedaBlur(id: string) {
+    const raw = values[id] ?? ''
+    if (!raw) return
+    const num = parseInput(raw)
+    if (num > 0) {
+      setValues((prev) => ({ ...prev, [id]: formatNumber(num) }))
+    }
+  }
+
+  function handleCopiar() {
+    if (!interpretacion) return
+    const texto = `${calc.nombre}\n${interpretacion.mensaje}`
+    navigator.clipboard.writeText(texto).then(() => {
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    })
+  }
+
+  function handleAbrirRelacionada(id: string) {
+    onClose()
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('fn:open-calc', { detail: id }))
+    }, 250)
   }
 
   return (
@@ -85,10 +136,10 @@ export default function CalculatorModal({
           onClick={(e) => e.stopPropagation()}
           className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-gold/20 bg-[#0c1a28] shadow-2xl sm:rounded-3xl"
         >
-          {/* Glow superior */}
+          {/* Glow superior con color del bloque */}
           <div
-            className="pointer-events-none absolute left-1/2 top-0 h-40 w-2/3 -translate-x-1/2 opacity-40 blur-3xl"
-            style={{ background: 'radial-gradient(circle, rgba(236,168,25,0.5), transparent 70%)' }}
+            className="pointer-events-none absolute left-1/2 top-0 h-40 w-2/3 -translate-x-1/2 opacity-30 blur-3xl"
+            style={{ background: `radial-gradient(circle, ${tagColor}88, transparent 70%)` }}
           />
 
           {/* Header */}
@@ -101,7 +152,6 @@ export default function CalculatorModal({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-gold">{calc.id}</span>
                 <span
                   className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
                   style={{ color: tagColor, background: `${tagColor}1a` }}
@@ -169,27 +219,28 @@ export default function CalculatorModal({
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {calc.inputs.map((field) => (
                     <div key={field.id}>
-                      <label className="mb-1.5 flex items-center gap-1.5 text-sm text-warm/85">
-                        <span>{field.label}</span>
-                        <span className="group relative inline-flex">
-                          <Info size={13} className="cursor-help text-muted/70" />
-                          <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-48 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0c1a28] px-3 py-2 text-xs text-muted opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
-                            {hintFor(field.tipo)}
-                          </span>
-                        </span>
+                      <label
+                        htmlFor={`input-${calc.id}-${field.id}`}
+                        className="mb-1.5 block text-sm text-warm/85"
+                      >
+                        {field.label}
+                        {field.requerido === false && (
+                          <span className="ml-1.5 text-[10px] text-muted/60">(opcional)</span>
+                        )}
                       </label>
                       <input
+                        id={`input-${calc.id}-${field.id}`}
                         className="input-field"
                         inputMode={
                           field.tipo === 'numero' || field.tipo === 'moneda' ? 'numeric' : 'decimal'
                         }
                         placeholder={field.placeholder}
                         value={values[field.id] ?? ''}
-                        onChange={(e) =>
-                          setValues((prev) => ({ ...prev, [field.id]: e.target.value }))
-                        }
+                        onChange={(e) => handleInputChange(field.id, e.target.value)}
+                        onBlur={() => field.tipo === 'moneda' && handleMonedaBlur(field.id)}
                         onKeyDown={(e) => e.key === 'Enter' && handleCalcular()}
                       />
+                      <p className="mt-1 text-xs text-muted/60">{hintFor(field.tipo)}</p>
                     </div>
                   ))}
                 </div>
@@ -207,18 +258,73 @@ export default function CalculatorModal({
 
             {/* Resultado */}
             {interpretacion && (
-              <div className="mt-6">
-                <p className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-                  <Lightbulb size={13} className="text-gold" />
-                  Qué significa este resultado
+              <div className="mt-6" ref={resultRef}>
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+                    <Lightbulb size={13} className="text-gold" />
+                    {stale ? 'Resultado anterior — recalculá' : 'Qué significa este resultado'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCopiar}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted transition-colors hover:text-gold"
+                  >
+                    {copiado ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                    {copiado ? 'Copiado' : 'Copiar'}
+                  </button>
+                </div>
+                <div className={stale ? 'opacity-50 transition-opacity' : 'transition-opacity'}>
+                  <ResultBox interpretacion={interpretacion} />
+                </div>
+
+                {/* Calculadoras relacionadas */}
+                {relacionadas.length > 0 && !stale && (
+                  <div className="mt-4">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+                      Tu próximo paso
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      {relacionadas.slice(0, 2).map((rel) => {
+                        const relMeta = CALC_META[rel.id]
+                        const RelIcon = relMeta?.Icon ?? DEFAULT_ICON
+                        const relColor = BLOQUE_COLOR[rel.bloque] ?? '#ECA819'
+                        return (
+                          <button
+                            key={rel.id}
+                            type="button"
+                            onClick={() => handleAbrirRelacionada(rel.id)}
+                            className="flex flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition-all hover:border-white/20 hover:bg-white/[0.06]"
+                          >
+                            <div
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                              style={{ background: `${relColor}1a`, color: relColor }}
+                            >
+                              <RelIcon size={16} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-warm/90">{rel.nombre}</p>
+                              <p className="text-[10px] text-muted/70">{relMeta?.categoria}</p>
+                            </div>
+                            <ArrowRight size={14} className="shrink-0 text-muted/40" />
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <p className="mt-4 text-center text-[10px] text-muted/40">
+                  Cálculo instantáneo · Sin datos almacenados
                 </p>
-                <ResultBox interpretacion={interpretacion} />
               </div>
             )}
           </div>
 
           {/* Footer con CTA calcular (sticky) */}
-          <div className="border-t border-white/10 bg-[#0a141f]/80 p-4 backdrop-blur sm:p-5">
+          <div
+            className="border-t border-white/10 bg-[#0a141f]/80 p-4 backdrop-blur sm:p-5"
+            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+          >
             <motion.button
               type="button"
               whileTap={{ scale: 0.99 }}
@@ -226,7 +332,7 @@ export default function CalculatorModal({
               className="btn-primary flex min-h-[52px] w-full items-center justify-center gap-2 text-base"
             >
               <Calculator size={18} />
-              Calcular
+              {stale ? 'Recalcular' : 'Calcular'}
             </motion.button>
           </div>
         </motion.div>

@@ -1,10 +1,11 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import type { Calculadora } from '../data/calculadoras'
 import { CALC_META, DEFAULT_ICON } from '../data/calcMeta'
 import { BLOQUE_COLOR } from '../config'
 
-export default function CalculatorCard({
+function CalculatorCard({
   calc,
   onSelect,
 }: {
@@ -61,3 +62,5 @@ export default function CalculatorCard({
     </motion.button>
   )
 }
+
+export default memo(CalculatorCard)

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Bloque, Calculadora } from '../data/calculadoras'
 import { BLOQUE_COLOR } from '../config'
@@ -14,11 +15,15 @@ interface Props {
 
 export default function BlockSection({ id, nombre, descripcion, calculadoras, onSelect }: Props) {
   const color = BLOQUE_COLOR[nombre] ?? '#ECA819'
+  const [filtroCategoria, setFiltroCategoria] = useState<string | null>(null)
 
-  // Categorías granulares presentes en este bloque (para los chips del header)
   const categorias = Array.from(
     new Set(calculadoras.map((c) => CALC_META[c.id]?.categoria).filter(Boolean)),
   ) as string[]
+
+  const calcsMostradas = filtroCategoria
+    ? calculadoras.filter((c) => CALC_META[c.id]?.categoria === filtroCategoria)
+    : calculadoras
 
   return (
     <section id={id} className="relative px-4 py-16 sm:px-6">
@@ -42,15 +47,43 @@ export default function BlockSection({ id, nombre, descripcion, calculadoras, on
           </div>
           <p className="mt-3 max-w-2xl text-muted">{descripcion}</p>
 
-          {categorias.length > 0 && (
+          {/* Filtros de subcategoría — ahora clickeables */}
+          {categorias.length > 1 && (
             <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setFiltroCategoria(null)}
+                className={`rounded-full px-3 py-1 text-xs transition-all ${
+                  filtroCategoria === null
+                    ? 'font-medium text-warm'
+                    : 'text-muted hover:text-warm/70'
+                }`}
+                style={
+                  filtroCategoria === null
+                    ? { background: `${color}22`, border: `1px solid ${color}55`, color }
+                    : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }
+                }
+              >
+                Todas
+              </button>
               {categorias.map((cat) => (
-                <span
+                <button
                   key={cat}
-                  className="rounded-full bg-white/[0.04] px-3 py-1 text-xs text-muted"
+                  type="button"
+                  onClick={() => setFiltroCategoria(filtroCategoria === cat ? null : cat)}
+                  className={`rounded-full px-3 py-1 text-xs transition-all ${
+                    filtroCategoria === cat
+                      ? 'font-medium'
+                      : 'text-muted hover:text-warm/70'
+                  }`}
+                  style={
+                    filtroCategoria === cat
+                      ? { background: `${color}22`, border: `1px solid ${color}55`, color }
+                      : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }
+                  }
                 >
                   {cat}
-                </span>
+                </button>
               ))}
             </div>
           )}
@@ -67,7 +100,7 @@ export default function BlockSection({ id, nombre, descripcion, calculadoras, on
           }}
           className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {calculadoras.map((calc) => (
+          {calcsMostradas.map((calc) => (
             <motion.div
               key={calc.id}
               variants={{
@@ -80,6 +113,12 @@ export default function BlockSection({ id, nombre, descripcion, calculadoras, on
             </motion.div>
           ))}
         </motion.div>
+
+        {filtroCategoria && calcsMostradas.length === 0 && (
+          <p className="mt-8 text-center text-sm text-muted">
+            No hay fórmulas en esta categoría.
+          </p>
+        )}
       </div>
     </section>
   )

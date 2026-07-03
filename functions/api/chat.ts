@@ -142,6 +142,8 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
   }
 
   // 2) Body válido con mensaje
+  // Para limitar abuso: configurar una regla WAF en Cloudflare Dashboard →
+  // Security → WAF → Rate Limiting Rules → /api/chat → 10 req/min por IP.
   let message = ''
   try {
     const body = (await request.json()) as { message?: unknown }
@@ -152,8 +154,8 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
   if (!message) {
     return json({ error: 'Escribí una consulta para el Asesor IA.' }, 400)
   }
-  if (message.length > 2000) {
-    return json({ error: 'La consulta es demasiado larga. Resumila un poco.' }, 400)
+  if (message.length > 800) {
+    return json({ error: 'La consulta es demasiado larga. Resumila en menos de 800 caracteres.' }, 400)
   }
 
   // 3) Llamada a Gemini desde el servidor
@@ -229,12 +231,14 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
       return json({ error: 'No pude interpretar tu consulta. Probá reformularla.' }, 502)
     }
 
-    const jsonMatch = fullText.match(/\{[^}]+\}/)
-    const userText = fullText.replace(jsonMatch?.[0] ?? '', '').trim()
+    // Busca el último { del texto — el JSON de acción siempre va al final.
+    const lastBrace = fullText.lastIndexOf('{')
     let action: unknown = null
-    if (jsonMatch) {
+    let userText = fullText
+    if (lastBrace !== -1) {
       try {
-        action = JSON.parse(jsonMatch[0])
+        action = JSON.parse(fullText.slice(lastBrace))
+        userText = fullText.slice(0, lastBrace).trim()
       } catch {
         action = null
       }
